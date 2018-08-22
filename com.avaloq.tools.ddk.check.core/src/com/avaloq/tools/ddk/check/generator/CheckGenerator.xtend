@@ -26,16 +26,20 @@ import org.eclipse.xtext.xbase.compiler.GeneratorConfig
 
 import static extension com.avaloq.tools.ddk.check.generator.CheckGeneratorExtensions.*
 import static extension com.avaloq.tools.ddk.check.generator.CheckGeneratorNaming.*
+import com.avaloq.tools.ddk.check.compiler.ICheckGeneratorConfigProvider
 
 class CheckGenerator extends JvmModelGenerator {
 
   @Inject extension CheckGeneratorExtensions generatorExtensions
   @Inject extension CheckGeneratorNaming
   @Inject CheckCompiler compiler
+  @Inject private ICheckGeneratorConfigProvider generatorConfigProvider;
 
   override void doGenerate(Resource resource, IFileSystemAccess fsa) {
     super.doGenerate(resource, fsa); // Generate validator, catalog, and preference initializer from inferred Jvm models.
+    val config = generatorConfigProvider.get(resource);
     for (catalog : toIterable(resource.allContents).filter(typeof(CheckCatalog))) {
+
       fsa.generateFile(catalog.issueCodesFilePath, catalog.compileIssueCodes)
       fsa.generateFile(catalog.standaloneSetupPath, catalog.compileStandaloneSetup)
 
@@ -45,9 +49,11 @@ class CheckGenerator extends JvmModelGenerator {
         CheckGeneratorConstants::CHECK_REGISTRY_OUTPUT,
         catalog.generateServiceRegistry(CheckUtil::serviceRegistryClassName, fsa)
       )
-
-      // change output path for html files to docs/
-      fsa.generateFile(catalog.docFileName, CheckGeneratorConstants::CHECK_DOC_OUTPUT, catalog.compileDoc)
+      // generate documentation for SCA-checks only
+      if(!config.isGenerateLanguageInternalChecks){
+        // change output path for html files to docs/
+        fsa.generateFile(catalog.docFileName, CheckGeneratorConstants::CHECK_DOC_OUTPUT, catalog.compileDoc)
+      }
     }
   }
 
@@ -157,13 +163,15 @@ class CheckGenerator extends JvmModelGenerator {
     public class «catalog.standaloneSetupClassName» implements ICheckValidatorStandaloneSetup {
 
       private static final Logger LOG = Logger.getLogger(«catalog.standaloneSetupClassName».class);
+      «IF catalog.grammar !== null»
       private static final String GRAMMAR_NAME = "«catalog.grammar.name»";
+      «ENDIF»
       private static final String CATALOG_FILE_PATH = "«catalog.checkFilePath»";
 
       /** {@inheritDoc} */
       public void doSetup() {
-        ICheckValidatorRegistry.INSTANCE.registerValidator(GRAMMAR_NAME, new «catalog.validatorClassName»());
-        ICheckCatalogRegistry.INSTANCE.registerCatalog(GRAMMAR_NAME, new ModelLocation(
+        ICheckValidatorRegistry.INSTANCE.registerValidator(«IF catalog.grammar !== null»GRAMMAR_NAME,«ENDIF» new «catalog.validatorClassName»());
+        ICheckCatalogRegistry.INSTANCE.registerCatalog(«IF catalog.grammar !== null»GRAMMAR_NAME,«ENDIF» new ModelLocation(
           «catalog.standaloneSetupClassName».class.getClassLoader().getResource(CATALOG_FILE_PATH), CATALOG_FILE_PATH));
         LOG.info("Standalone setup done for «catalog.checkFilePath»");
       }

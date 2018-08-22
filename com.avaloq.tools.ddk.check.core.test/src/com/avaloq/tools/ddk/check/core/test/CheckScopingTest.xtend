@@ -19,9 +19,9 @@ import com.avaloq.tools.ddk.check.core.test.util.CheckTestUtil
 import com.google.common.collect.Lists
 import com.google.inject.Inject
 import java.util.List
-import org.eclipse.xtext.junit4.InjectWith
-import org.eclipse.xtext.junit4.XtextRunner
-import org.eclipse.xtext.junit4.ui.util.IResourcesSetupUtil
+import org.eclipse.xtext.testing.InjectWith
+import org.eclipse.xtext.testing.XtextRunner
+import org.eclipse.xtext.ui.testing.util.IResourcesSetupUtil
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -46,23 +46,7 @@ class CheckScopingTest extends AbstractCheckTestCase {
     addSourcesToWorkspace(typeof(CheckScopingTest), requiredSourceFileNames)
 
     // wait for build to finish, otherwise included catalog may not be resolvable
-    IResourcesSetupUtil::waitForAutoBuild
-  }
-
-  /*
-   * Tests that Catalogs can be included in one another.
-   */
-  @Test
-  def void testResolutionOfIncludedCatalog() {
-    initializeTestProject
-
-    // test that our model is available
-    val sampleCheckModel = getModel("SampleChecks") as CheckCatalog
-
-    // test that the included catalog exists and is resolved
-    val includedCategory = sampleCheckModel.includedCatalogs
-    assertNotNull("The included Category is not null", includedCategory)
-    assertFalse("The included Category could be resolved", includedCategory.eIsProxy)
+    IResourcesSetupUtil.reallyWaitForAutoBuild
   }
 
   /*

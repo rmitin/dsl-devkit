@@ -15,10 +15,10 @@ import com.avaloq.tools.ddk.check.check.CheckCatalog
 import com.avaloq.tools.ddk.check.core.test.util.CheckModelUtil
 import com.google.common.collect.Lists
 import com.google.inject.Inject
-import org.eclipse.xtext.junit4.InjectWith
-import org.eclipse.xtext.junit4.XtextRunner
-import org.eclipse.xtext.junit4.util.ParseHelper
-import org.eclipse.xtext.junit4.validation.ValidationTestHelper
+import org.eclipse.xtext.testing.InjectWith
+import org.eclipse.xtext.testing.XtextRunner
+import org.eclipse.xtext.testing.util.ParseHelper
+import org.eclipse.xtext.testing.validation.ValidationTestHelper
 import org.eclipse.xtext.xbase.XbasePackage$Literals
 import org.junit.Ignore
 import org.junit.Test
@@ -113,13 +113,6 @@ class CheckValidationTest {
     contexts = Lists::newArrayList("for org.eclipse.emf.ecore.EObject e {issue}", "for E e {issue}")
     model = parser.parse(modelUtil.modelWithContexts(contexts))
     helper.assertNoError(model, IssueCodes::CONTEXT_TYPES_NOT_UNIQUE)
-  }
-
-  /* Tests checkCircularDependency(CheckCatalog) */
-  @Test
-  def void testCatalogMayNotIncludeItself() {
-    val model = parser.parse("package p catalog c for grammar g with c ")
-    helper.assertError(model, CheckPackage$Literals::CHECK_CATALOG, IssueCodes::INCLUDED_CATALOGS_WITH_CIRCULAR_DEPENDENCIES)
   }
 
   /* Tests checkGuardsFirstInBlockExpression(Context) */
